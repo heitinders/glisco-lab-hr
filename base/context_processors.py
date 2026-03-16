@@ -32,11 +32,11 @@ class AllCompany:
     """
 
     class Urls:
-        url = "https://ui-avatars.com/api/?name=All+Company&background=random"
+        url = "https://ui-avatars.com/api/?name=Glisco+Lab&background=random"
 
-    company = "All Company"
+    company = "Glisco Lab"
     icon = Urls()
-    text = "All companies"
+    text = "Glisco Lab"
     id = None
 
 
@@ -60,8 +60,8 @@ def get_companies(request):
     companies = [
         [
             "all",
-            "All Company",
-            "https://ui-avatars.com/api/?name=All+Company&background=random",
+            "Glisco Lab",
+            "https://ui-avatars.com/api/?name=Glisco+Lab&background=random",
             False,
         ],
     ] + companies
@@ -132,7 +132,7 @@ def update_selected_company(request):
                 )
 
     if company_id == "all":
-        text = "All companies"
+        text = "Glisco Lab"
     elif company_id == user_company:
         text = "My Company"
     else:
@@ -171,12 +171,12 @@ def white_labelling_company(request):
             company = hq
 
         return {
-            "white_label_company_name": company.company if company else "Horilla",
+            "white_label_company_name": company.company if company else "Glisco Lab HR",
             "white_label_company": company,
         }
     else:
         return {
-            "white_label_company_name": "Horilla",
+            "white_label_company_name": "Glisco Lab HR",
             "white_label_company": None,
         }
 
