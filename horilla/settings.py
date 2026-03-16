@@ -126,6 +126,8 @@ if env("DATABASE_URL", default=None):
     DATABASES["default"].setdefault("OPTIONS", {})
     DATABASES["default"]["OPTIONS"]["connect_timeout"] = 10
     DATABASES["default"]["OPTIONS"]["options"] = "-c statement_timeout=30000"
+    DATABASES["default"]["CONN_MAX_AGE"] = 600
+    DATABASES["default"]["CONN_HEALTH_CHECKS"] = True
 else:
     DATABASES = {
         "default": {
