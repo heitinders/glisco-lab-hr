@@ -21,6 +21,8 @@ COPY --from=builder /install /usr/local
 
 COPY . .
 
+RUN python manage.py collectstatic --noinput 2>/dev/null || true
+
 RUN chmod +x /app/entrypoint.sh
 
 EXPOSE 8000
