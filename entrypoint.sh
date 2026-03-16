@@ -24,7 +24,7 @@ except Exception as e:
 echo "Starting gunicorn on port ${PORT:-8000}..."
 exec gunicorn \
     --bind "0.0.0.0:${PORT:-8000}" \
-    --timeout 120 \
+    --timeout 300 \
     --workers 1 \
     --threads 2 \
     --worker-tmp-dir /dev/shm \

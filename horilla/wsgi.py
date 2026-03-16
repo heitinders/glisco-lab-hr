@@ -105,7 +105,7 @@ def application(environ, start_response):
         return [body]
 
     # All other requests wait for Django
-    if not _django_ready.wait(timeout=120):
+    if not _django_ready.wait(timeout=300):
         status = "503 Service Unavailable"
         headers = [("Content-Type", "application/json"), ("Retry-After", "10")]
         start_response(status, headers)
