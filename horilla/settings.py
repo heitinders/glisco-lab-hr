@@ -34,7 +34,9 @@ env = environ.Env(
     CSRF_TRUSTED_ORIGINS=(list, ["http://localhost:8000", "https://*.railway.app", "https://hr.gliscolab.com"]),
 )
 
-env.read_env(os.path.join(BASE_DIR, ".env"), overwrite=True)
+env_file = os.path.join(BASE_DIR, ".env")
+if os.path.exists(env_file):
+    env.read_env(env_file, overwrite=True)
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env("SECRET_KEY")

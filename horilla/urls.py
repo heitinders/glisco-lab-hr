@@ -18,17 +18,20 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.http import JsonResponse
 from django.urls import include, path, re_path
+from django.views.decorators.csrf import csrf_exempt
 
 import notifications.urls
 
 from . import settings
 
 
+@csrf_exempt
 def health_check(request):
     return JsonResponse({"status": "ok"}, status=200)
 
 
 urlpatterns = [
+    path("health/", health_check),
     path("admin/", admin.site.urls),
     path("accounts/", include("django.contrib.auth.urls")),
     path("accounts/", include("django.contrib.auth.urls")),
@@ -42,7 +45,6 @@ urlpatterns = [
         "^inbox/notifications/", include(notifications.urls, namespace="notifications")
     ),
     path("i18n/", include("django.conf.urls.i18n")),
-    path("health/", health_check),
 ]
 
 # if settings.DEBUG:

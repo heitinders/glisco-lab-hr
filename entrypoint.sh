@@ -1,6 +1,7 @@
 #!/bin/bash
 
 echo "Running migrations..."
+python3 manage.py makemigrations 2>&1 | tail -5
 python3 manage.py migrate --noinput 2>&1 | tail -5
 python3 manage.py createhorillauser --first_name admin --last_name admin --username admin --password admin --email admin@example.com --phone 1234567890 2>&1 | tail -3
 echo "Starting gunicorn on port ${PORT:-8000}..."
