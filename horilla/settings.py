@@ -122,6 +122,10 @@ if env("DATABASE_URL", default=None):
     DATABASES = {
         "default": env.db(),
     }
+    # Add connect timeout so startup doesn't hang on unreachable DB
+    DATABASES["default"].setdefault("OPTIONS", {})
+    DATABASES["default"]["OPTIONS"]["connect_timeout"] = 10
+    DATABASES["default"]["OPTIONS"]["options"] = "-c statement_timeout=30000"
 else:
     DATABASES = {
         "default": {
