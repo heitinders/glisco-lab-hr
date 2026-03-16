@@ -2,7 +2,12 @@
 Django application configuration for the PMS (Performance Management System) app.
 """
 
+import threading
+import time
+
 from django.apps import AppConfig
+
+_PMS_AUTOMATION_BOOTSTRAP_STARTED = False
 
 
 class PmsConfig(AppConfig):
@@ -15,6 +20,7 @@ class PmsConfig(AppConfig):
     name = "pms"
 
     def ready(self):
+        global _PMS_AUTOMATION_BOOTSTRAP_STARTED
         from django.urls import include, path
 
         from horilla.horilla_settings import APPS
@@ -25,6 +31,13 @@ class PmsConfig(AppConfig):
             path("pms/", include("pms.urls")),
         )
         super().ready()
+        if not _PMS_AUTOMATION_BOOTSTRAP_STARTED:
+            _PMS_AUTOMATION_BOOTSTRAP_STARTED = True
+            threading.Thread(target=self._bootstrap_automation, daemon=True).start()
+
+    def _bootstrap_automation(self):
+        # Keep app initialization non-blocking.
+        time.sleep(2)
         try:
             from pms.signals import start_automation
 

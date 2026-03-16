@@ -1,11 +1,17 @@
 import datetime
+import os
 import sys
+import threading
 
 import pytz
 from apscheduler.schedulers.background import BackgroundScheduler
 from django.conf import settings
 
 from base.backends import logger
+
+_SCHEDULER = None
+_SCHEDULER_LOCK = threading.Lock()
+_SCHEDULER_STARTED = False
 
 
 def create_work_record():
@@ -47,26 +53,47 @@ def create_work_record():
         print(f"No new work records to create for {date}.")
 
 
-if not any(
-    cmd in sys.argv
-    for cmd in ["makemigrations", "migrate", "compilemessages", "flush", "shell"]
-):
-    """
-    Initializes and starts background tasks using APScheduler when the server is running.
-    """
-    scheduler = BackgroundScheduler(timezone=pytz.timezone(settings.TIME_ZONE))
-
-    scheduler.add_job(
-        create_work_record, "interval", minutes=30, misfire_grace_time=3600 * 3
-    )
-    scheduler.add_job(
-        create_work_record,
-        "cron",
-        hour=0,
-        minute=30,
-        misfire_grace_time=3600 * 9,
-        id="create_daily_work_record",
-        replace_existing=True,
+def should_start_scheduler():
+    if os.environ.get("HORILLA_DISABLE_SCHEDULERS", "").lower() in {"1", "true", "yes"}:
+        return False
+    return not any(
+        cmd in sys.argv
+        for cmd in ["makemigrations", "migrate", "compilemessages", "flush", "shell"]
     )
 
-    scheduler.start()
+
+def start_scheduler():
+    """
+    Initializes background tasks explicitly (not at module import time).
+    """
+    global _SCHEDULER, _SCHEDULER_STARTED
+    if not should_start_scheduler():
+        return
+    with _SCHEDULER_LOCK:
+        if _SCHEDULER_STARTED:
+            return
+        _SCHEDULER = BackgroundScheduler(timezone=pytz.timezone(settings.TIME_ZONE))
+        _SCHEDULER.add_job(
+            create_work_record, "interval", minutes=30, misfire_grace_time=3600 * 3
+        )
+        _SCHEDULER.add_job(
+            create_work_record,
+            "cron",
+            hour=0,
+            minute=30,
+            misfire_grace_time=3600 * 9,
+            id="create_daily_work_record",
+            replace_existing=True,
+        )
+        _SCHEDULER.start()
+        _SCHEDULER_STARTED = True
+
+
+def start_scheduler_async(delay_seconds=2):
+    def _start():
+        try:
+            start_scheduler()
+        except Exception as exc:
+            logger.error(f"Attendance scheduler failed to start: {exc}")
+
+    threading.Timer(delay_seconds, _start).start()

@@ -5,8 +5,12 @@ Initializes model choices and starts automation when the server runs.
 
 import os
 import sys
+import threading
+import time
 
 from django.apps import AppConfig
+
+_AUTOMATION_BOOTSTRAP_STARTED = False
 
 
 class HorillaAutomationConfig(AppConfig):
@@ -16,6 +20,7 @@ class HorillaAutomationConfig(AppConfig):
     name = "horilla_automations"
 
     def ready(self) -> None:
+        global _AUTOMATION_BOOTSTRAP_STARTED
         ready = super().ready()
         if any(
             cmd in sys.argv
@@ -28,8 +33,16 @@ class HorillaAutomationConfig(AppConfig):
             ]
         ):
             return ready
-        try:
+        if _AUTOMATION_BOOTSTRAP_STARTED:
+            return ready
+        _AUTOMATION_BOOTSTRAP_STARTED = True
+        threading.Thread(target=self._bootstrap_automation, daemon=True).start()
+        return ready
 
+    def _bootstrap_automation(self):
+        # Defer automation initialization so startup can serve HTTP quickly.
+        time.sleep(2)
+        try:
             from base.templatetags.horillafilters import app_installed
             from employee.models import Employee
             from horilla_automations.methods.methods import get_related_models
@@ -71,4 +84,3 @@ class HorillaAutomationConfig(AppConfig):
             """
             Models not ready yet
             """
-        return ready

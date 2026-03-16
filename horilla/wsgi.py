@@ -31,13 +31,23 @@ threading.Thread(target=_load_django, daemon=True).start()
 def application(environ, start_response):
     path = environ.get("PATH_INFO", "")
 
-    # Health check responds immediately, even before Django loads
-    if path == "/health/" or path == "/health":
+    if path in {"/health", "/health/"}:
         status = "200 OK"
         headers = [("Content-Type", "application/json")]
         start_response(status, headers)
-        return [b'{"status": "ok"}']
+        return [b'{"status": "ok", "bootstrap": "in-progress"}']
 
-    # Wait for Django to be ready for all other requests
-    _django_ready.wait()
+    # Health checks can hit "/" on some platforms (including Railway).
+    if path == "/" and not _django_ready.is_set():
+        status = "200 OK"
+        headers = [("Content-Type", "application/json")]
+        start_response(status, headers)
+        return [b'{"status": "ok", "bootstrap": "in-progress"}']
+
+    # Wait for Django to be ready for all other requests.
+    if not _django_ready.wait(timeout=30):
+        status = "503 Service Unavailable"
+        headers = [("Content-Type", "application/json"), ("Retry-After", "5")]
+        start_response(status, headers)
+        return [b'{"status": "starting"}']
     return _django_app(environ, start_response)

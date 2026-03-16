@@ -5,7 +5,9 @@ This module is used to register scheduled tasks
 """
 
 import json
+import os
 import sys
+import threading
 from datetime import date, timedelta
 
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -15,6 +17,10 @@ from payroll.methods.methods import calculate_employer_contribution, save_paysli
 from payroll.views.component_views import payroll_calculation
 
 from .models.models import Contract, Payslip
+
+_SCHEDULER = None
+_SCHEDULER_LOCK = threading.Lock()
+_SCHEDULER_STARTED = False
 
 
 def expire_contract():
@@ -138,11 +144,28 @@ def auto_payslip_generate():
                 generate_payslip(date=date.today(), companies=companies, all=False)
 
 
-if not any(
-    cmd in sys.argv
-    for cmd in ["makemigrations", "migrate", "compilemessages", "flush", "shell"]
-):
-    scheduler = BackgroundScheduler()
-    scheduler.add_job(expire_contract, "interval", hours=4)
-    scheduler.add_job(auto_payslip_generate, "interval", hours=3)
-    scheduler.start()
+def should_start_scheduler():
+    if os.environ.get("HORILLA_DISABLE_SCHEDULERS", "").lower() in {"1", "true", "yes"}:
+        return False
+    return not any(
+        cmd in sys.argv
+        for cmd in ["makemigrations", "migrate", "compilemessages", "flush", "shell"]
+    )
+
+
+def start_scheduler():
+    global _SCHEDULER, _SCHEDULER_STARTED
+    if not should_start_scheduler():
+        return
+    with _SCHEDULER_LOCK:
+        if _SCHEDULER_STARTED:
+            return
+        _SCHEDULER = BackgroundScheduler()
+        _SCHEDULER.add_job(expire_contract, "interval", hours=4)
+        _SCHEDULER.add_job(auto_payslip_generate, "interval", hours=3)
+        _SCHEDULER.start()
+        _SCHEDULER_STARTED = True
+
+
+def start_scheduler_async(delay_seconds=2):
+    threading.Timer(delay_seconds, start_scheduler).start()

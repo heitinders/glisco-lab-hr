@@ -3,7 +3,6 @@ App configuration for the 'payroll' app.
 """
 
 from django.apps import AppConfig
-from django.db.models.signals import post_migrate
 
 
 class PayrollConfig(AppConfig):
@@ -27,9 +26,9 @@ class PayrollConfig(AppConfig):
             path("payroll/", include("payroll.urls.urls")),
         )
         try:
-            from payroll.scheduler import auto_payslip_generate
+            from payroll import scheduler
 
-            auto_payslip_generate()
+            scheduler.start_scheduler_async()
         except:
             """
             Migrations are not affected

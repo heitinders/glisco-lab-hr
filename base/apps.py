@@ -2,6 +2,7 @@
 This module contains the configuration for the 'base' app.
 """
 
+from django.db.models.signals import post_migrate
 from django.apps import AppConfig
 
 
@@ -17,22 +18,39 @@ class BaseConfig(AppConfig):
         from base import signals
 
         super().ready()
-        try:
-            from base.models import EmployeeShiftDay
+        post_migrate.connect(
+            create_default_employee_shift_days,
+            dispatch_uid="base.create_default_employee_shift_days",
+            weak=False,
+        )
 
-            if not EmployeeShiftDay.objects.exists():
-                days = [
-                    ("monday", "Monday"),
-                    ("tuesday", "Tuesday"),
-                    ("wednesday", "Wednesday"),
-                    ("thursday", "Thursday"),
-                    ("friday", "Friday"),
-                    ("saturday", "Saturday"),
-                    ("sunday", "Sunday"),
-                ]
 
-                EmployeeShiftDay.objects.bulk_create(
-                    [EmployeeShiftDay(day=day[0]) for day in days]
-                )
-        except Exception as e:
-            pass
+def create_default_employee_shift_days(sender, **kwargs):
+    """
+    Seed default shift-day rows after migrations, not during app startup.
+    """
+    if getattr(sender, "name", None) != "base":
+        return
+    try:
+        from base.models import EmployeeShiftDay
+
+        days = [
+            "monday",
+            "tuesday",
+            "wednesday",
+            "thursday",
+            "friday",
+            "saturday",
+            "sunday",
+        ]
+        existing_days = set(
+            EmployeeShiftDay.objects.filter(day__in=days).values_list("day", flat=True)
+        )
+        missing_days = [day for day in days if day not in existing_days]
+        if missing_days:
+            EmployeeShiftDay.objects.bulk_create(
+                [EmployeeShiftDay(day=day) for day in missing_days]
+            )
+    except Exception:
+        # Avoid blocking startup/migrations because of seed failures.
+        pass

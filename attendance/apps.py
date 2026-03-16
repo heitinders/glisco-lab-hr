@@ -21,7 +21,7 @@ class AttendanceConfig(AppConfig):
     def ready(self):
         from django.urls import include, path
 
-        from attendance import scheduler, signals
+        from attendance import signals
         from horilla.horilla_settings import APPS
         from horilla.settings import MIDDLEWARE
         from horilla.urls import urlpatterns
@@ -35,5 +35,12 @@ class AttendanceConfig(AppConfig):
             MIDDLEWARE.append(middleware_path)
 
         APP_URLS.append("attendance.urls")
+        try:
+            from attendance import scheduler
+
+            scheduler.start_scheduler_async()
+        except Exception:
+            # Scheduler startup must never block app boot.
+            pass
 
         super().ready()
