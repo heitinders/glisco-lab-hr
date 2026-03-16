@@ -23,6 +23,30 @@ def _log(msg):
     print(f"[WSGI] {msg}", file=sys.stderr, flush=True)
 
 
+def _instrument_app_ready():
+    """Monkey-patch AppConfig.ready to log timing per app."""
+    from django.apps import AppConfig
+
+    _original_ready = AppConfig.ready
+
+    def _timed_ready(self):
+        t = time.time()
+        _log(f"  ready() START: {self.name}")
+        try:
+            result = _original_ready(self)
+        except Exception as e:
+            _log(f"  ready() FAILED: {self.name} after {time.time()-t:.1f}s — {e}")
+            raise
+        elapsed = time.time() - t
+        if elapsed > 0.5:
+            _log(f"  ready() SLOW:  {self.name} took {elapsed:.1f}s")
+        else:
+            _log(f"  ready() OK:    {self.name} ({elapsed:.2f}s)")
+        return result
+
+    AppConfig.ready = _timed_ready
+
+
 def _load_django():
     global _django_app, _django_error, _load_status
     try:
@@ -34,6 +58,9 @@ def _load_django():
         from django.conf import settings
 
         _log(f"Settings imported in {time.time()-t0:.1f}s, DEBUG={settings.DEBUG}")
+
+        # Instrument per-app timing before setup
+        _instrument_app_ready()
 
         _load_status = "django-setup"
         _log("Running django.setup()...")
