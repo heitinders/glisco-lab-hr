@@ -6,7 +6,7 @@ import { createEmployeeSchema } from '@/lib/validations/employee';
 import { encryptFields, SENSITIVE_EMPLOYEE_FIELDS } from '@/lib/encryption';
 import { createAuditEntry } from '@/lib/audit';
 import bcrypt from 'bcryptjs';
-import { emailQueue } from '@/lib/queue';
+import { sendEmail } from '@/lib/email/sender';
 import { addDays } from 'date-fns';
 
 export async function GET(req: NextRequest) {
@@ -219,20 +219,31 @@ export async function POST(req: NextRequest) {
         return newEmployee;
       });
 
-      // (5) Queue welcome email (fire-and-forget)
-      emailQueue
-        .add({
-          to: validated.email,
-          subject: 'Welcome to Glisco Lab',
-          html: `
-            <h1>Welcome to Glisco Lab, ${validated.firstName}!</h1>
-            <p>Your employee account has been created. Here are your login details:</p>
-            <p><strong>Email:</strong> ${validated.email}</p>
-            <p><strong>Temporary Password:</strong> ${tempPassword}</p>
-            <p>Please log in and change your password immediately.</p>
-          `,
-        })
-        .catch(() => {});
+      // (5) Send welcome email (fire-and-forget)
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://hr.gliscolab.com';
+      sendEmail({
+        to: validated.email,
+        subject: 'Welcome to Glisco Lab – Your Account is Ready',
+        html: `
+          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="background: #1a1a2e; padding: 24px 32px; border-radius: 8px 8px 0 0;">
+              <h1 style="color: #fff; margin: 0; font-size: 20px;">GliscoHR</h1>
+            </div>
+            <div style="padding: 32px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+              <h2 style="margin-top: 0;">Welcome to Glisco Lab, ${validated.firstName}! 🎉</h2>
+              <p>Your employee account has been created. Use the credentials below to log in and get started.</p>
+              <div style="background: #f3f4f6; padding: 16px 20px; border-radius: 6px; margin: 20px 0;">
+                <p style="margin: 4px 0;"><strong>Email:</strong> ${validated.email}</p>
+                <p style="margin: 4px 0;"><strong>Temporary Password:</strong> ${tempPassword}</p>
+              </div>
+              <p style="color: #dc2626; font-size: 14px;">⚠️ Please change your password after your first login.</p>
+              <a href="${appUrl}/login" style="display: inline-block; background: #4B9EFF; color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600; margin-top: 8px;">Log In to GliscoHR</a>
+              <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 28px 0;" />
+              <p style="color: #6b7280; font-size: 13px; margin-bottom: 0;">If you didn't expect this email, please contact your HR administrator.</p>
+            </div>
+          </div>
+        `,
+      }).catch((err) => console.error('[welcome-email] Failed to send:', err));
 
       // (6) Return created employee without sensitive fields
       const { ssn, aadhaarNumber, panNumber, ...safeEmployee } = employee as any;
