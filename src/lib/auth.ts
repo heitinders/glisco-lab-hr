@@ -4,9 +4,6 @@ import bcrypt from 'bcryptjs';
 import { db } from './db';
 import { authConfig } from './auth.config';
 
-// NOTE: PrismaAdapter removed — it conflicts with Credentials + JWT strategy.
-// The adapter tries to manage DB sessions which breaks Credentials login.
-// Only add it back if using OAuth providers alongside Credentials.
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   providers: [
@@ -16,56 +13,72 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null;
+        try {
+          console.log('[auth] authorize called with email:', credentials?.email);
 
-        const user = await db.user.findUnique({
-          where: { email: credentials.email as string },
-          include: { employee: { select: { id: true, companyId: true } } },
-        });
+          if (!credentials?.email || !credentials?.password) {
+            console.log('[auth] missing credentials');
+            return null;
+          }
 
-        if (!user?.passwordHash) return null;
+          const user = await db.user.findUnique({
+            where: { email: credentials.email as string },
+            include: { employee: { select: { id: true, companyId: true } } },
+          });
 
-        // Check account lockout
-        if (user.lockedUntil && user.lockedUntil > new Date()) {
-          throw new Error('Account locked. Try again later.');
-        }
+          console.log('[auth] user found:', !!user, 'hasPassword:', !!user?.passwordHash);
 
-        const isValid = await bcrypt.compare(
-          credentials.password as string,
-          user.passwordHash
-        );
+          if (!user?.passwordHash) return null;
 
-        if (!isValid) {
-          const attempts = user.loginAttempts + 1;
+          if (user.lockedUntil && user.lockedUntil > new Date()) {
+            throw new Error('Account locked. Try again later.');
+          }
+
+          const isValid = await bcrypt.compare(
+            credentials.password as string,
+            user.passwordHash
+          );
+
+          console.log('[auth] password valid:', isValid);
+
+          if (!isValid) {
+            const attempts = user.loginAttempts + 1;
+            await db.user.update({
+              where: { id: user.id },
+              data: {
+                loginAttempts: attempts,
+                lockedUntil:
+                  attempts >= 5
+                    ? new Date(Date.now() + 15 * 60 * 1000)
+                    : null,
+              },
+            });
+            return null;
+          }
+
           await db.user.update({
             where: { id: user.id },
-            data: {
-              loginAttempts: attempts,
-              lockedUntil:
-                attempts >= 5
-                  ? new Date(Date.now() + 15 * 60 * 1000)
-                  : null,
-            },
+            data: { loginAttempts: 0, lockedUntil: null, lastLoginAt: new Date() },
           });
-          return null;
+
+          const result = {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            image: user.image,
+            role: user.role,
+            employeeId: user.employee?.id,
+            companyId: user.employee?.companyId,
+          };
+
+          console.log('[auth] returning user:', result.id, result.email, result.role);
+          return result;
+        } catch (error) {
+          console.error('[auth] authorize error:', error);
+          throw error;
         }
-
-        // Reset login attempts on success
-        await db.user.update({
-          where: { id: user.id },
-          data: { loginAttempts: 0, lockedUntil: null, lastLoginAt: new Date() },
-        });
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          image: user.image,
-          role: user.role,
-          employeeId: user.employee?.id,
-          companyId: user.employee?.companyId,
-        };
       },
     }),
   ],
+  debug: true,
 });
