@@ -32,10 +32,10 @@ const IGNORED_FIELDS = new Set(['createdAt', 'updatedAt']);
 
 export function createAuditEntry(
   params: AuditEntryParams,
-): Prisma.AuditLogCreateInput {
+) {
   return {
-    company: { connect: { id: params.companyId } },
-    actor: params.actorId ? { connect: { id: params.actorId } } : undefined,
+    companyId: params.companyId,
+    actorId: params.actorId ?? null,
     action: params.action,
     resource: params.resource,
     resourceId: params.resourceId,
