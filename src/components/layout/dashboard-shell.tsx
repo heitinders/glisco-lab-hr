@@ -5,6 +5,7 @@ import { Sidebar } from '@/components/layout/sidebar';
 import { Topbar } from '@/components/layout/topbar';
 import { MobileNav } from '@/components/layout/mobile-nav';
 import { MobileSidebar } from '@/components/layout/mobile-sidebar';
+import { useUIStore } from '@/stores/ui-store';
 
 /* ── DashboardShell ──────────────────────────────────────────────────── */
 
@@ -14,6 +15,7 @@ interface DashboardShellProps {
 
 export function DashboardShell({ children }: DashboardShellProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const sidebarCollapsed = useUIStore((s) => s.sidebarCollapsed);
 
   const handleMenuToggle = useCallback(() => {
     setMobileMenuOpen((prev) => !prev);
@@ -32,7 +34,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
       <MobileSidebar open={mobileMenuOpen} onClose={handleMenuClose} />
 
       {/* Main content area - offset by sidebar width on desktop */}
-      <div className="flex min-h-screen flex-col lg:pl-[260px]">
+      <div className={`sidebar-transition flex min-h-screen flex-col ${sidebarCollapsed ? 'lg:pl-[72px]' : 'lg:pl-[260px]'}`}>
         {/* Top bar */}
         <Topbar onMenuToggle={handleMenuToggle} />
 

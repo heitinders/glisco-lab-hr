@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
@@ -22,6 +22,7 @@ import {
   LogOut,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useUIStore } from '@/stores/ui-store';
 
 /* ── Helpers ─────────────────────────────────────────────────────────── */
 
@@ -70,15 +71,12 @@ interface SidebarProps {
 export function Sidebar({ className }: SidebarProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
-  const [collapsed, setCollapsed] = useState(false);
+  const collapsed = useUIStore((s) => s.sidebarCollapsed);
+  const toggleCollapsed = useUIStore((s) => s.toggleSidebarCollapsed);
 
   const userName = session?.user?.name ?? 'User';
   const userRole = (session?.user as any)?.role ?? 'User';
   const initials = getInitials(userName);
-
-  const toggleCollapsed = useCallback(() => {
-    setCollapsed((prev) => !prev);
-  }, []);
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/';
