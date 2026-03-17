@@ -1,13 +1,14 @@
 import NextAuth from 'next-auth';
-import { PrismaAdapter } from '@auth/prisma-adapter';
 import Credentials from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 import { db } from './db';
 import { authConfig } from './auth.config';
 
+// NOTE: PrismaAdapter removed — it conflicts with Credentials + JWT strategy.
+// The adapter tries to manage DB sessions which breaks Credentials login.
+// Only add it back if using OAuth providers alongside Credentials.
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
-  adapter: PrismaAdapter(db) as any,
   providers: [
     Credentials({
       credentials: {
