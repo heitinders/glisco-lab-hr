@@ -1,0 +1,11 @@
+# Lib Context
+- auth.ts = NextAuth v5 config
+- db.ts = Prisma client singleton
+- rbac/ = permission matrix + middleware
+- validations/ = Zod schemas (shared client/server)
+- compliance/ = US + India labor law calculators
+- email/ = Resend integration + React Email templates
+- ai/ = Anthropic Claude API client + prompts
+- pdf/ = pdfmake document generators
+- encryption.ts = AES-256-GCM field-level PII encryption (ADR-005)
+- queue/ = Bull + Redis background jobs

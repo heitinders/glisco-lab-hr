@@ -1,26 +1,233 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Syne:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&display=swap");
 @import "tailwindcss";
 
+/* ── Brand Tokens ────────────────────────────────────────────────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Core palette */
+  --navy: #0B0F1A;
+  --navy-light: #141928;
+  --navy-lighter: #1E2438;
+  --blue: #4B9EFF;
+  --blue-hover: #3A8AE8;
+  --blue-light: #4B9EFF1A;
+  --blue-muted: #4B9EFF33;
+
+  /* Semantic */
+  --background: #F8F9FC;
+  --foreground: #0B0F1A;
+  --card: #FFFFFF;
+  --card-foreground: #0B0F1A;
+  --muted: #F1F3F9;
+  --muted-foreground: #64748B;
+  --border: #E2E8F0;
+  --border-strong: #CBD5E1;
+  --ring: #4B9EFF;
+
+  /* Status */
+  --success: #10B981;
+  --success-light: #10B98115;
+  --warning: #F59E0B;
+  --warning-light: #F59E0B15;
+  --error: #EF4444;
+  --error-light: #EF444415;
+  --info: #4B9EFF;
+  --info-light: #4B9EFF15;
+
+  /* Spacing scale */
+  --sidebar-width: 260px;
+  --sidebar-collapsed-width: 72px;
+  --topbar-height: 64px;
+  --mobile-nav-height: 64px;
 }
 
+/* ── Tailwind v4 theme ───────────────────────────────────────────────── */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-ring: var(--ring);
+
+  --color-navy: var(--navy);
+  --color-navy-light: var(--navy-light);
+  --color-navy-lighter: var(--navy-lighter);
+  --color-blue: var(--blue);
+  --color-blue-hover: var(--blue-hover);
+  --color-blue-light: var(--blue-light);
+  --color-blue-muted: var(--blue-muted);
+
+  --color-success: var(--success);
+  --color-success-light: var(--success-light);
+  --color-warning: var(--warning);
+  --color-warning-light: var(--warning-light);
+  --color-error: var(--error);
+  --color-error-light: var(--error-light);
+  --color-info: var(--info);
+  --color-info-light: var(--info-light);
+
+  --font-heading: "DM Serif Display", serif;
+  --font-body: "Syne", sans-serif;
+  --font-mono: "DM Mono", monospace;
+
+  --font-sans: var(--font-body);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ── Base styles ─────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  border-color: var(--border);
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Syne", sans-serif;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "DM Serif Display", serif;
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+code,
+pre,
+kbd {
+  font-family: "DM Mono", monospace;
+}
+
+/* ── Focus ring utility ──────────────────────────────────────────────── */
+.focus-ring {
+  outline: none;
+}
+.focus-ring:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Diagonal slash motif ────────────────────────────────────────────── */
+.slash-motif {
+  position: relative;
+}
+.slash-motif::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: -8px;
+  width: 2px;
+  height: 100%;
+  background: var(--blue);
+  transform: rotate(12deg);
+  transform-origin: top center;
+}
+
+/* ── Scrollbar styling ───────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+}
+
+/* ── Selection ───────────────────────────────────────────────────────── */
+::selection {
+  background: var(--blue-muted);
+  color: var(--navy);
+}
+
+/* ── Sidebar transition utilities ────────────────────────────────────── */
+.sidebar-transition {
+  transition: width 200ms cubic-bezier(0.4, 0, 0.2, 1),
+    padding 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Stat card geometric accent ──────────────────────────────────────── */
+.stat-card-accent {
+  position: relative;
+  overflow: hidden;
+}
+.stat-card-accent::after {
+  content: "";
+  position: absolute;
+  top: -20px;
+  right: -20px;
+  width: 80px;
+  height: 80px;
+  background: var(--blue-light);
+  transform: rotate(45deg);
+  pointer-events: none;
+}
+
+/* ── Animation keyframes ─────────────────────────────────────────────── */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 300ms ease-out forwards;
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 300ms ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slide-up 300ms ease-out forwards;
 }

@@ -1,0 +1,1 @@
+export type { Employee, User, Department, Designation, LeaveRequest, Attendance, PayrollRun, Payslip, Goal, PerformanceReview, ReviewCycle, Job, Candidate, Notification, AuditLog } from '@prisma/client';
