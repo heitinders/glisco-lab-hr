@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { signOut } from 'next-auth/react';
 import {
   Menu,
   User,
@@ -117,6 +118,7 @@ export function Topbar({ onMenuToggle, className }: TopbarProps) {
               </div>
               <div className="border-t border-border py-1">
                 <button
+                  onClick={() => signOut({ callbackUrl: '/login' })}
                   className="flex w-full items-center gap-3 px-4 py-2 text-sm text-error transition-colors hover:bg-error-light"
                   role="menuitem"
                 >

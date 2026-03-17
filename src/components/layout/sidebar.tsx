@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { signOut } from 'next-auth/react';
 import {
   LayoutDashboard,
   Users,
@@ -147,6 +148,7 @@ export function Sidebar({ className }: SidebarProps) {
           )}
           {!collapsed && (
             <button
+              onClick={() => signOut({ callbackUrl: '/login' })}
               className="focus-ring rounded p-1 text-white/40 transition-colors hover:text-white"
               aria-label="Sign out"
             >
