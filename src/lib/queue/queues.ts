@@ -1,5 +1,4 @@
-import Queue from 'bull';
-import { getRedisConnection } from './connection';
+import type Queue from 'bull';
 
 const defaultJobOptions: Queue.JobOptions = {
   attempts: 3,
@@ -8,14 +7,7 @@ const defaultJobOptions: Queue.JobOptions = {
   removeOnFail: 50,
 };
 
-function createQueue<T>(name: string) {
-  return new Queue<T>(name, {
-    createClient: () => getRedisConnection().duplicate(),
-    defaultJobOptions,
-  });
-}
-
-// ─── Queue Definitions ──────────────────────────────────────────────────────
+// ─── Type Definitions ──────────────────────────────────────────────────────
 
 export interface EmailJobData {
   to: string | string[];
@@ -40,7 +32,44 @@ export interface NotificationJobData {
   link?: string;
 }
 
-export const emailQueue = createQueue<EmailJobData>('email');
-export const payrollQueue = createQueue<PayrollJobData>('payroll');
-export const pdfQueue = createQueue<PdfJobData>('pdf');
-export const notificationQueue = createQueue<NotificationJobData>('notification');
+// ─── Lazy Queue Factory (avoids importing Bull at build time) ───────────────
+
+const queues = new Map<string, Queue.Queue>();
+
+function getQueue<T>(name: string): Queue.Queue<T> {
+  if (queues.has(name)) {
+    return queues.get(name) as Queue.Queue<T>;
+  }
+
+  // Dynamic import at runtime only — keeps Bull out of the Vercel build
+  const BullQueue = require('bull') as typeof Queue;
+  const { getRedisConnection } = require('./connection');
+
+  const queue = new BullQueue<T>(name, {
+    createClient: () => getRedisConnection().duplicate(),
+    defaultJobOptions,
+  });
+
+  queues.set(name, queue);
+  return queue;
+}
+
+export const emailQueue = {
+  add: (...args: Parameters<Queue.Queue<EmailJobData>['add']>) =>
+    getQueue<EmailJobData>('email').add(...args),
+};
+
+export const payrollQueue = {
+  add: (...args: Parameters<Queue.Queue<PayrollJobData>['add']>) =>
+    getQueue<PayrollJobData>('payroll').add(...args),
+};
+
+export const pdfQueue = {
+  add: (...args: Parameters<Queue.Queue<PdfJobData>['add']>) =>
+    getQueue<PdfJobData>('pdf').add(...args),
+};
+
+export const notificationQueue = {
+  add: (...args: Parameters<Queue.Queue<NotificationJobData>['add']>) =>
+    getQueue<NotificationJobData>('notification').add(...args),
+};
