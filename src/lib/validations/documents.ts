@@ -111,10 +111,10 @@ export const fileUploadSchema = z.object({
 // Exported types
 // ---------------------------------------------------------------------------
 
-export type CreateDocumentInput = z.infer<typeof createDocumentSchema>;
-export type DocumentListQuery = z.infer<typeof documentListQuerySchema>;
-export type RenderTemplateInput = z.infer<typeof renderTemplateSchema>;
-export type TemplateListQuery = z.infer<typeof templateListQuerySchema>;
-export type FileUploadInput = z.infer<typeof fileUploadSchema>;
+export type CreateDocumentInput = z.input<typeof createDocumentSchema>;
+export type DocumentListQuery = z.input<typeof documentListQuerySchema>;
+export type RenderTemplateInput = z.input<typeof renderTemplateSchema>;
+export type TemplateListQuery = z.input<typeof templateListQuerySchema>;
+export type FileUploadInput = z.input<typeof fileUploadSchema>;
 
 export { ALLOWED_MIME_TYPES, MAX_FILE_SIZE };

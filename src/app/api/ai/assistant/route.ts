@@ -144,8 +144,8 @@ async function executeTool(
           lastName: true,
           email: true,
           region: true,
-          employmentStatus: true,
-          dateOfJoining: true,
+          status: true,
+          joinedAt: true,
           department: { select: { name: true } },
           designation: { select: { title: true } },
           reportingTo: { select: { firstName: true, lastName: true } },
@@ -158,7 +158,7 @@ async function executeTool(
       return employees
         .map(
           (e) =>
-            `${e.firstName} ${e.lastName} (${e.email}) — ${e.designation?.title || 'N/A'}, ${e.department?.name || 'N/A'} | Region: ${e.region} | Status: ${e.employmentStatus} | Joined: ${e.dateOfJoining?.toISOString().split('T')[0] || 'N/A'} | Reports to: ${e.reportingTo ? `${e.reportingTo.firstName} ${e.reportingTo.lastName}` : 'N/A'}`,
+            `${e.firstName} ${e.lastName} (${e.email}) — ${e.designation?.title || 'N/A'}, ${e.department?.name || 'N/A'} | Region: ${e.region} | Status: ${e.status} | Joined: ${e.joinedAt?.toISOString().split('T')[0] || 'N/A'} | Reports to: ${e.reportingTo ? `${e.reportingTo.firstName} ${e.reportingTo.lastName}` : 'N/A'}`,
         )
         .join('\n');
     }
@@ -192,7 +192,7 @@ async function executeTool(
       return balances
         .map(
           (b) =>
-            `${b.employee.firstName} ${b.employee.lastName} — ${b.leaveType.name}: ${b.used}/${b.total} used (${b.total - b.used} remaining)`,
+            `${b.employee.firstName} ${b.employee.lastName} — ${b.leaveType.name}: ${b.used}/${b.entitled} used (${b.entitled - b.used} remaining)`,
         )
         .join('\n');
     }
@@ -244,7 +244,7 @@ async function executeTool(
           include: {
             _count: {
               select: {
-                employees: { where: { employmentStatus: 'ACTIVE' } },
+                employees: { where: { status: 'ACTIVE' } },
               },
             },
           },
@@ -257,7 +257,7 @@ async function executeTool(
       if (groupBy === 'region') {
         const regions = await db.employee.groupBy({
           by: ['region'],
-          where: { companyId, employmentStatus: 'ACTIVE' },
+          where: { companyId, status: 'ACTIVE' },
           _count: true,
         });
         return regions
@@ -268,7 +268,7 @@ async function executeTool(
       if (groupBy === 'designation') {
         const desigs = await db.employee.groupBy({
           by: ['designationId'],
-          where: { companyId, employmentStatus: 'ACTIVE' },
+          where: { companyId, status: 'ACTIVE' },
           _count: true,
         });
         const designations = await db.designation.findMany({
@@ -339,7 +339,7 @@ export async function POST(req: NextRequest) {
     // Fetch company name for context
     const company = await db.company.findUnique({
       where: { id: companyId },
-      select: { name: true, regions: true },
+      select: { name: true, region: true },
     });
 
     // Build system prompt with user context
@@ -347,7 +347,7 @@ export async function POST(req: NextRequest) {
 
 Current user: ${userEmail} (Role: ${userRole})
 Company: ${company?.name || 'Unknown'}
-Regions: ${(company?.regions || []).join(', ')}
+Region: ${company?.region || 'Unknown'}
 Date: ${new Date().toISOString().split('T')[0]}
 
 IMPORTANT SECURITY RULES:

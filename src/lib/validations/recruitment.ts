@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const createJobSchema = z.object({
+const createJobBaseSchema = z.object({
   title: z
     .string()
     .min(1, 'Job title is required')
@@ -23,7 +23,9 @@ export const createJobSchema = z.object({
   closesAt: z.string().datetime().optional().nullable(),
   hiringManagerId: z.string().cuid().optional().nullable(),
   companyId: z.string().cuid('Invalid company ID'),
-}).refine(
+});
+
+export const createJobSchema = createJobBaseSchema.refine(
   (data) => {
     if (data.salaryMin != null && data.salaryMax != null) {
       return data.salaryMax >= data.salaryMin;
@@ -36,7 +38,7 @@ export const createJobSchema = z.object({
   }
 );
 
-export const updateJobSchema = createJobSchema.partial().omit({ companyId: true });
+export const updateJobSchema = createJobBaseSchema.partial().omit({ companyId: true });
 
 export const createCandidateSchema = z.object({
   jobId: z.string().cuid('Invalid job ID'),
@@ -99,8 +101,8 @@ export const scorecardSchema = z.object({
   summary: z.string().max(2000).optional().nullable(),
 });
 
-export type CreateJobInput = z.infer<typeof createJobSchema>;
-export type UpdateJobInput = z.infer<typeof updateJobSchema>;
-export type CreateCandidateInput = z.infer<typeof createCandidateSchema>;
-export type UpdateCandidateStageInput = z.infer<typeof updateCandidateStageSchema>;
-export type ScorecardInput = z.infer<typeof scorecardSchema>;
+export type CreateJobInput = z.input<typeof createJobSchema>;
+export type UpdateJobInput = z.input<typeof updateJobSchema>;
+export type CreateCandidateInput = z.input<typeof createCandidateSchema>;
+export type UpdateCandidateStageInput = z.input<typeof updateCandidateStageSchema>;
+export type ScorecardInput = z.input<typeof scorecardSchema>;

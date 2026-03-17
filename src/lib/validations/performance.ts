@@ -167,10 +167,10 @@ export const createPeerReviewSchema = z.object({
   type: z.literal('PEER'),
 });
 
-export type SelfReviewSubmissionInput = z.infer<typeof selfReviewSubmissionSchema>;
-export type ManagerReviewSubmissionInput = z.infer<typeof managerReviewSubmissionSchema>;
-export type HrReviewSubmissionInput = z.infer<typeof hrReviewSubmissionSchema>;
-export type CreatePeerReviewInput = z.infer<typeof createPeerReviewSchema>;
+export type SelfReviewSubmissionInput = z.input<typeof selfReviewSubmissionSchema>;
+export type ManagerReviewSubmissionInput = z.input<typeof managerReviewSubmissionSchema>;
+export type HrReviewSubmissionInput = z.input<typeof hrReviewSubmissionSchema>;
+export type CreatePeerReviewInput = z.input<typeof createPeerReviewSchema>;
 
 // ---------------------------------------------------------------------------
 // Goal
@@ -197,7 +197,7 @@ export const createGoalSchema = z.object({
     .default([]),
 });
 
-export type CreateReviewCycleInput = z.infer<typeof createReviewCycleSchema>;
-export type UpdateReviewCycleInput = z.infer<typeof updateReviewCycleSchema>;
-export type SubmitReviewInput = z.infer<typeof submitReviewSchema>;
-export type CreateGoalInput = z.infer<typeof createGoalSchema>;
+export type CreateReviewCycleInput = z.input<typeof createReviewCycleSchema>;
+export type UpdateReviewCycleInput = z.input<typeof updateReviewCycleSchema>;
+export type SubmitReviewInput = z.input<typeof submitReviewSchema>;
+export type CreateGoalInput = z.input<typeof createGoalSchema>;

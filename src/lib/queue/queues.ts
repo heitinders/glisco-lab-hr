@@ -30,9 +30,10 @@ export interface NotificationJobData {
 
 function createStubQueue<T>(name: string) {
   return {
-    async add(data: T, opts?: Record<string, unknown>) {
-      console.log(`[queue:${name}] Job enqueued:`, JSON.stringify(data));
-      return { id: `stub-${Date.now()}`, data };
+    async add(nameOrData: string | T, dataOrOpts?: T | Record<string, unknown>, opts?: Record<string, unknown>) {
+      const jobData = typeof nameOrData === 'string' ? dataOrOpts as T : nameOrData;
+      console.log(`[queue:${name}] Job enqueued:`, JSON.stringify(jobData));
+      return { id: `stub-${Date.now()}`, data: jobData };
     },
   };
 }

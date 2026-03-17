@@ -26,6 +26,6 @@ export const adjustPayslipSchema = z.object({
   ),
 });
 
-export type RunPayrollInput = z.infer<typeof runPayrollSchema>;
-export type ApprovePayrollInput = z.infer<typeof approvePayrollSchema>;
-export type AdjustPayslipInput = z.infer<typeof adjustPayslipSchema>;
+export type RunPayrollInput = z.input<typeof runPayrollSchema>;
+export type ApprovePayrollInput = z.input<typeof approvePayrollSchema>;
+export type AdjustPayslipInput = z.input<typeof adjustPayslipSchema>;

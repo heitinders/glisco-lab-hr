@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
           where: {
             companyId,
             status: 'ACTIVE',
-            startDate: { lt: lastMonthEnd },
+            joinedAt: { lt: lastMonthEnd },
           },
         }),
         db.job.count({ where: { companyId, status: 'OPEN' } }),
@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
           where: {
             companyId,
             status: 'ACTIVE',
-            startDate: { gte: monthStart },
+            joinedAt: { gte: monthStart },
           },
         }),
         db.reviewCycle.count({ where: { companyId, isActive: true } }),
@@ -110,7 +110,7 @@ export async function GET(req: NextRequest) {
       // Manager dashboard
       const reportIds = (
         await db.employee.findMany({
-          where: { managerId: employeeId, status: 'ACTIVE' },
+          where: { reportingToId: employeeId, status: 'ACTIVE' },
           select: { id: true },
         })
       ).map((e) => e.id);

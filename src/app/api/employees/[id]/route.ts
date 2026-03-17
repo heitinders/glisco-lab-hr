@@ -12,14 +12,15 @@ import { createAuditEntry, buildChanges } from '@/lib/audit';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     await checkPermission(session, 'employee:read');
 
     const employee = await db.employee.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         department: true,
         designation: true,

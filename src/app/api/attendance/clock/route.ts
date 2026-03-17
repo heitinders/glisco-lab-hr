@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
             employeeId,
             date: today,
             clockIn: now,
-            status: isLate ? 'LATE' : 'PRESENT',
+            status: 'PRESENT',
             isLate,
             notes: validated.notes ?? null,
             ipAddress: req.headers.get('x-forwarded-for') ?? req.headers.get('x-real-ip'),

@@ -5,14 +5,15 @@ import { checkPermission, handleApiError } from '@/lib/rbac/middleware';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     await checkPermission(session, 'documents:view_all');
 
     const documents = await db.employeeDocument.findMany({
-      where: { employeeId: params.id },
+      where: { employeeId: id },
       orderBy: { createdAt: 'desc' },
     });
 
@@ -24,9 +25,10 @@ export async function GET(
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     await checkPermission(session, 'documents:upload');
 

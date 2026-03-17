@@ -61,6 +61,6 @@ export const cancelLeaveSchema = z.object({
   reason: z.string().min(1, 'Cancellation reason is required').max(500),
 });
 
-export type CreateLeaveRequestInput = z.infer<typeof createLeaveRequestSchema>;
-export type ApproveLeaveInput = z.infer<typeof approveLeaveSchema>;
-export type CancelLeaveInput = z.infer<typeof cancelLeaveSchema>;
+export type CreateLeaveRequestInput = z.input<typeof createLeaveRequestSchema>;
+export type ApproveLeaveInput = z.input<typeof approveLeaveSchema>;
+export type CancelLeaveInput = z.input<typeof cancelLeaveSchema>;
