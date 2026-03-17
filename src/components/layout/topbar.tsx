@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { signOut } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 import {
   Menu,
   User,
@@ -14,6 +14,18 @@ import { cn } from '@/lib/utils';
 import { Breadcrumbs } from '@/components/layout/breadcrumbs';
 import { NotificationBell } from '@/components/layout/notification-bell';
 
+/* ── Helpers ─────────────────────────────────────────────────────────── */
+
+function getInitials(name?: string | null) {
+  if (!name) return '??';
+  return name
+    .split(' ')
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+}
+
 /* ── Types ───────────────────────────────────────────────────────────── */
 
 interface TopbarProps {
@@ -24,8 +36,13 @@ interface TopbarProps {
 /* ── Topbar component ────────────────────────────────────────────────── */
 
 export function Topbar({ onMenuToggle, className }: TopbarProps) {
+  const { data: session } = useSession();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+
+  const userName = session?.user?.name ?? 'User';
+  const userEmail = session?.user?.email ?? '';
+  const initials = getInitials(userName);
 
   /* Close dropdown on outside click */
   const handleClickOutside = useCallback((e: MouseEvent) => {
@@ -78,10 +95,10 @@ export function Topbar({ onMenuToggle, className }: TopbarProps) {
             aria-haspopup="true"
           >
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-navy text-xs font-semibold text-white">
-              HS
+              {initials}
             </div>
             <span className="hidden text-sm font-medium text-foreground md:inline-block">
-              Heitinder
+              {userName.split(' ')[0]}
             </span>
             <ChevronDown
               className={cn(
@@ -100,9 +117,9 @@ export function Topbar({ onMenuToggle, className }: TopbarProps) {
             >
               <div className="border-b border-border px-4 py-3">
                 <p className="text-sm font-semibold text-foreground">
-                  Heitinder Singh
+                  {userName}
                 </p>
-                <p className="text-xs text-muted-foreground">admin@gliscolab.com</p>
+                <p className="text-xs text-muted-foreground">{userEmail}</p>
               </div>
               <div className="py-1">
                 <UserMenuItem

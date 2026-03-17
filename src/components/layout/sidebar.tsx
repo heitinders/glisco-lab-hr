@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { signOut } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 import {
   LayoutDashboard,
   Users,
@@ -22,6 +22,18 @@ import {
   LogOut,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+/* ── Helpers ─────────────────────────────────────────────────────────── */
+
+function getInitials(name?: string | null) {
+  if (!name) return '??';
+  return name
+    .split(' ')
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+}
 
 /* ── Navigation items ────────────────────────────────────────────────── */
 
@@ -57,7 +69,12 @@ interface SidebarProps {
 
 export function Sidebar({ className }: SidebarProps) {
   const pathname = usePathname();
+  const { data: session } = useSession();
   const [collapsed, setCollapsed] = useState(false);
+
+  const userName = session?.user?.name ?? 'User';
+  const userRole = (session?.user as any)?.role ?? 'User';
+  const initials = getInitials(userName);
 
   const toggleCollapsed = useCallback(() => {
     setCollapsed((prev) => !prev);
@@ -136,14 +153,14 @@ export function Sidebar({ className }: SidebarProps) {
           )}
         >
           <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-blue/20 text-sm font-semibold text-blue">
-            HS
+            {initials}
           </div>
           {!collapsed && (
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold text-white">
-                Heitinder Singh
+                {userName}
               </p>
-              <p className="truncate text-xs text-white/50">Admin</p>
+              <p className="truncate text-xs text-white/50">{userRole}</p>
             </div>
           )}
           {!collapsed && (

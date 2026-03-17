@@ -3,7 +3,7 @@
 import { useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { signOut } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 import {
   LayoutDashboard,
   Users,
@@ -21,6 +21,18 @@ import {
   LogOut,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+/* ── Helpers ─────────────────────────────────────────────────────────── */
+
+function getInitials(name?: string | null) {
+  if (!name) return '??';
+  return name
+    .split(' ')
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+}
 
 /* ── Navigation items (mirrored from sidebar) ───────────────────────── */
 
@@ -54,6 +66,11 @@ interface MobileSidebarProps {
 
 export function MobileSidebar({ open, onClose }: MobileSidebarProps) {
   const pathname = usePathname();
+  const { data: session } = useSession();
+
+  const userName = session?.user?.name ?? 'User';
+  const userRole = (session?.user as any)?.role ?? 'User';
+  const initials = getInitials(userName);
 
   /* Close on route change */
   useEffect(() => {
@@ -157,13 +174,13 @@ export function MobileSidebar({ open, onClose }: MobileSidebarProps) {
         <div className="border-t border-white/5 p-3">
           <div className="flex items-center gap-3 rounded-lg p-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue/20 text-sm font-semibold text-blue">
-              HS
+              {initials}
             </div>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold text-white">
-                Heitinder Singh
+                {userName}
               </p>
-              <p className="truncate text-xs text-white/50">Admin</p>
+              <p className="truncate text-xs text-white/50">{userRole}</p>
             </div>
             <button
               onClick={() => signOut({ callbackUrl: '/login' })}
