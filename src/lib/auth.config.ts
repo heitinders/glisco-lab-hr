@@ -1,23 +1,12 @@
 import type { NextAuthConfig } from 'next-auth';
-import Credentials from 'next-auth/providers/credentials';
 
 // Edge-safe config — no Prisma, no bcrypt, no Node.js modules.
-// The authorize() logic lives in auth.ts; here we just declare the provider
-// so the middleware can verify JWT tokens.
+// Providers are defined in auth.ts only. This config handles
+// session, pages, and callbacks for the Edge middleware.
 export const authConfig = {
   session: { strategy: 'jwt', maxAge: 24 * 60 * 60 },
   pages: { signIn: '/login', error: '/login' },
-  providers: [
-    Credentials({
-      credentials: {
-        email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' },
-      },
-      // authorize is handled in the full auth.ts — this stub is needed
-      // so NextAuth recognizes the provider in Edge middleware
-      authorize: () => null,
-    }),
-  ],
+  providers: [], // Populated in auth.ts (full config) and middleware (empty is fine for JWT verification)
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
@@ -40,7 +29,6 @@ export const authConfig = {
       const isLoggedIn = !!auth?.user;
       const pathname = nextUrl.pathname;
 
-      // Public routes
       if (
         pathname.startsWith('/login') ||
         pathname.startsWith('/api/auth') ||
