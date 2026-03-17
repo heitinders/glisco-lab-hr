@@ -4,6 +4,7 @@ import type { NextAuthConfig } from 'next-auth';
 // Providers are defined in auth.ts only. This config handles
 // session, pages, and callbacks for the Edge middleware.
 export const authConfig = {
+  trustHost: true,
   session: { strategy: 'jwt', maxAge: 24 * 60 * 60 },
   pages: { signIn: '/login', error: '/login' },
   providers: [], // Populated in auth.ts (full config) and middleware (empty is fine for JWT verification)
